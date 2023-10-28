@@ -1,0 +1,1 @@
+/home/mario/Área\ de\ Trabalho/projects/basic-web-server/target/debug/main: /home/mario/Área\ de\ Trabalho/projects/basic-web-server/src/bin/main.rs /home/mario/Área\ de\ Trabalho/projects/basic-web-server/src/lib.rs
