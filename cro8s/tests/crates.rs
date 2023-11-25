@@ -126,6 +126,43 @@ fn test_update_crate() {
 }
 
 #[test]
+fn test_update_crate_and_change_rustacean() {
+    // Setup
+    let client = Client::new();
+    let rustacean = common::create_test_rustacean(&client);
+    let rustacean_two = common::create_test_rustacean(&client);
+    let a_crate = common::create_test_crate(&client, &rustacean);
+
+    // Test
+    let response = client.put(format!("{}/crates/{}", common::APP_HOST, a_crate["id"]))
+        .json(&json!({
+            "rustacean_id": rustacean_two["id"],
+            "code": "fooz",
+            "name": "Fooz crate",
+            "version": "0.2",
+            "description": "Fooz crate description"
+        }))
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let a_crate: Value = response.json().unwrap();
+    assert_eq!(a_crate, json!({
+        "id": a_crate["id"],
+        "code": "fooz",
+        "name": "Fooz crate",
+        "version": "0.2",
+        "description": "Fooz crate description",
+        "rustacean_id": rustacean_two["id"],
+        "created_at": a_crate["created_at"]
+    }));
+
+    // Cleanup
+    common::delete_test_crate(&client, a_crate);
+    common::delete_test_rustacean(&client, rustacean);
+}
+
+#[test]
 fn test_delete_crate() {
     // Setup
     let client = Client::new();
