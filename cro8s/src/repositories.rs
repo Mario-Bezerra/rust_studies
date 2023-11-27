@@ -68,3 +68,80 @@ impl CrateRepository{
         diesel::delete(crates::table.find(id)).execute(conn)
     }
 }
+
+pub struct UserRepository;
+
+impl UserRepository {
+
+    pub fn find_with_roles(conn: &mut PgConnection) -> QueryResult<Vec<(User, Vec<(UserRole, Role)>)>> {
+        let users = users::table.load::<User>(conn).expect("Could not find users in method find_with_roles in UserREpository");
+        let result = users_roles::table
+            .inner_join(roles::table)
+            .load::<(UserRole, Role)>(conn)
+            .expect("Error loading User Roles in find_with_roles method")
+            .grouped_by(&users);
+
+        Ok(users.into_iter().zip(result).collect())
+    }
+
+    pub fn create(conn : &mut PgConnection, new_user : NewUser, roles_codes: Vec<String>) -> QueryResult<User>{
+        let user = diesel::insert_into(users::table)
+                .values(new_user)
+                .get_result::<User>(conn)
+                .expect("Error creating User in method create of UserRepository");
+
+        for role_code in roles_codes {
+            let new_user_role: NewUserRole = {
+                    if let Ok(role) = RoleRepository::find_by_code(conn, role_code.to_owned()) {
+                        NewUserRole {user_id: user.id, role_id: role.id}
+                    } else {
+                        let new_role = NewRole {code: role_code.to_owned(), name: role_code.to_owned()};
+                        let role = RoleRepository::create(conn, new_role).expect("Error creating role");
+                        NewUserRole {user_id: user.id, role_id: role.id}
+                    }
+            };
+            let _ = diesel::insert_into(users_roles::table)
+                    .values(new_user_role)
+                    .get_result::<UserRole>(conn);
+        }
+        Ok(user)               
+    }
+
+    pub fn delete(c: &mut PgConnection, id: i32) -> QueryResult<usize> {
+        let _ = diesel::delete(
+            users_roles::table.filter(users_roles::user_id.eq(id))
+        ).execute(c);
+        diesel::delete(users::table.find(id)).execute(c)
+    }
+}
+
+pub struct RoleRepository;
+
+impl RoleRepository {
+
+    pub fn find_by_ids(conn: &mut PgConnection, ids: Vec<i32>) -> QueryResult<Vec<Role>> {
+        roles::table.filter(roles::id.eq_any(ids))
+                        .load(conn)
+    }
+
+    pub fn find_by_code(conn: &mut PgConnection, code: String) -> QueryResult<Role> {
+        roles::table.filter(roles::code.eq(code))
+            .first(conn)
+    }
+
+    pub fn find_by_user(conn: &mut PgConnection, user: &User) -> QueryResult<Vec<Role>> {
+        let user_roles = UserRole::belonging_to(&user)
+                                    .get_results::<UserRole>(conn)
+                                    .expect("Could not find user role in method find_by_user in RoleRepository");
+        
+        let role_ids: Vec<i32> = user_roles.iter().map(|ur| ur.role_id).collect();
+
+        Self::find_by_ids(conn, role_ids)
+    }
+
+    pub fn create(conn: &mut PgConnection, new_role : NewRole) -> QueryResult<Role>{
+        diesel::insert_into(roles::table)
+                .values(new_role)
+                .get_result(conn)
+    }
+}
