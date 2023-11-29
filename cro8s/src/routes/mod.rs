@@ -1,5 +1,6 @@
 pub mod rustaceans;
 pub mod crates;
+pub mod authorization;
 
 use std::error::Error;
 use rocket::response::status::Custom;

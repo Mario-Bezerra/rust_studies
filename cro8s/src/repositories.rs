@@ -72,6 +72,10 @@ impl CrateRepository{
 pub struct UserRepository;
 
 impl UserRepository {
+    
+    pub fn find_by_username(conn : &mut PgConnection, username: &String) -> QueryResult<User>{
+        users::table.filter(users::username.eq(username)).get_result(conn)
+    }
 
     pub fn find_with_roles(conn: &mut PgConnection) -> QueryResult<Vec<(User, Vec<(UserRole, Role)>)>> {
         let users = users::table.load::<User>(conn).expect("Could not find users in method find_with_roles in UserREpository");
