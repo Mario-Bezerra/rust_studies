@@ -1,51 +1,42 @@
 use rocket::http::Status;
 use rocket::serde::json::{Json, serde_json::json, Value};
 use rocket::response::status::{Custom, NoContent};
+use rocket_db_pools::Connection;
 use crate::models::{NewRustacean, Rustacean};
 use crate::repositories::RustaceanRepository;
 use super::{DbConn, server_error};
 
 #[rocket::get("/rustaceans")]
-pub async fn get_rustaceans(db: DbConn) -> Result<Value, Custom<Value>>{
-    db.run(|c| {
-        RustaceanRepository::find_multiple(c, 100)
+pub async fn get_rustaceans(mut db: Connection<DbConn>) -> Result<Value, Custom<Value>>{
+        RustaceanRepository::find_multiple(&mut db, 100).await
         .map(|rustaceans| json!(rustaceans))
         .map_err(|e| server_error(e.into()))
-    }).await
 }
 
 #[rocket::get("/rustaceans/<id>")]
-pub async fn get_one_rustacean(id: i32, db: DbConn) -> Result<Value, Custom<Value>> {
-    db.run( move |c| {
-        RustaceanRepository::find(c, id)
+pub async fn get_one_rustacean(mut db: Connection<DbConn>, id: i32) -> Result<Value, Custom<Value>> {
+        RustaceanRepository::find(&mut db, id).await
         .map(|rustacean| json!(rustacean))
         .map_err(|e| server_error(e.into()))
-    }).await
 }
 
 #[rocket::post("/rustaceans", format="json", data="<new_rustacean>")]
-pub async fn create_rustacean(new_rustacean: Json<NewRustacean>, db: DbConn) -> Result<Custom<Value>, Custom<Value>> {
-    db.run(|c| {
-        RustaceanRepository::create(c, new_rustacean.into_inner())
+pub async fn create_rustacean(mut db: Connection<DbConn>, new_rustacean: Json<NewRustacean>) -> Result<Custom<Value>, Custom<Value>> {
+        RustaceanRepository::create(&mut db, new_rustacean.into_inner()).await
         .map(|rustacean| Custom(Status::Created, json!(rustacean)))
         .map_err(|e| server_error(e.into()))
-    }).await
 }
 
 #[rocket::put("/rustaceans/<id>", format="json", data="<rustacean>")]
-pub async fn update_rustacean(id: i32, rustacean: Json<Rustacean>, db: DbConn) -> Result<Value, Custom<Value>> {
-    db.run( move |c| {
-        RustaceanRepository::update(c, id, rustacean.into_inner())
+pub async fn update_rustacean(mut db: Connection<DbConn>, id: i32, rustacean: Json<Rustacean>) -> Result<Value, Custom<Value>> {
+        RustaceanRepository::update(&mut db, id, rustacean.into_inner()).await
         .map(|rustacean| json!(rustacean))
         .map_err(|e| server_error(e.into()))
-    }).await
 }
 
 #[rocket::delete("/rustaceans/<id>")]
-pub async fn delete_rustacean(id: i32, db: DbConn) -> Result<NoContent, Custom<Value>>{
-    db.run( move |c| {
-        RustaceanRepository::delete(c, id)
+pub async fn delete_rustacean(mut db: Connection<DbConn>, id: i32) -> Result<NoContent, Custom<Value>>{
+        RustaceanRepository::delete(&mut db, id).await
         .map(|_| NoContent)
         .map_err(|e| server_error(e.into()))
-    }).await
 }

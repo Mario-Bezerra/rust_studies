@@ -39,11 +39,11 @@ async fn main() {
                     sub_matches.get_one::<String>("username").unwrap().to_owned(),
                     sub_matches.get_one::<String>("password").unwrap().to_owned(),
                     sub_matches.get_many::<String>("roles").unwrap().map(|v| v.to_owned()).collect(),
-                )},
-                Some(("list", _)) => { cro8s::commands::list_users()},
+                ).await},
+                Some(("list", _)) => { cro8s::commands::list_users().await},
                 Some(("delete", sub_matches)) => {
                     cro8s::commands::delete_user(
-                        sub_matches.get_one::<i32>("id").unwrap().to_owned())
+                        sub_matches.get_one::<i32>("id").unwrap().to_owned()).await
                 },
                 _ => {}
             }
