@@ -1,4 +1,4 @@
-use reqwest::{blocking::Client, StatusCode};
+use reqwest::StatusCode;
 use serde_json::{json, Value};
 
 pub mod common;
@@ -7,7 +7,7 @@ pub mod common;
 #[test]
 fn test_get_crates() {
     // Setup
-    let client = Client::new();
+    let client = common::get_client_with_logged_in_admin();
     let rustacean = common::create_test_rustacean(&client);
     let a_crate = common::create_test_crate(&client, &rustacean);
     let b_crate = common::create_test_crate(&client, &rustacean);
@@ -28,7 +28,7 @@ fn test_get_crates() {
 #[test]
 fn test_create_crate() {
     // Setup
-    let client = Client::new();
+    let client = common::get_client_with_logged_in_admin();
     let rustacean = common::create_test_rustacean(&client);
 
     // Test
@@ -63,7 +63,7 @@ fn test_create_crate() {
 #[test]
 fn test_view_crate() {
     // Setup
-    let client = Client::new();
+    let client = common::get_client_with_logged_in_admin();
     let rustacean = common::create_test_rustacean(&client);
     let a_crate = common::create_test_crate(&client, &rustacean);
 
@@ -92,7 +92,7 @@ fn test_view_crate() {
 #[test]
 fn test_update_crate() {
     // Setup
-    let client = Client::new();
+    let client = common::get_client_with_logged_in_admin();
     let rustacean = common::create_test_rustacean(&client);
     let a_crate = common::create_test_crate(&client, &rustacean);
 
@@ -128,7 +128,7 @@ fn test_update_crate() {
 #[test]
 fn test_update_crate_and_change_rustacean() {
     // Setup
-    let client = Client::new();
+    let client = common::get_client_with_logged_in_admin();
     let rustacean = common::create_test_rustacean(&client);
     let rustacean_two = common::create_test_rustacean(&client);
     let a_crate = common::create_test_crate(&client, &rustacean);
@@ -165,7 +165,7 @@ fn test_update_crate_and_change_rustacean() {
 #[test]
 fn test_delete_crate() {
     // Setup
-    let client = Client::new();
+    let client = common::get_client_with_logged_in_admin();
     let rustacean = common::create_test_rustacean(&client);
     let a_crate = common::create_test_crate(&client, &rustacean);
 
