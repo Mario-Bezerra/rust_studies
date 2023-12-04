@@ -4,7 +4,7 @@ use rocket::response::status::{Custom, NoContent};
 use rocket_db_pools::Connection;
 use crate::models::{NewRustacean, Rustacean, User};
 use crate::repositories::RustaceanRepository;
-use super::{DbConn, server_error};
+use super::{DbConn, server_error, EditorUser};
 
 #[rocket::get("/rustaceans")]
 pub async fn get_rustaceans(mut db: Connection<DbConn>, _user: User) -> Result<Value, Custom<Value>>{
@@ -21,21 +21,21 @@ pub async fn get_one_rustacean(mut db: Connection<DbConn>, id: i32, _user: User)
 }
 
 #[rocket::post("/rustaceans", format="json", data="<new_rustacean>")]
-pub async fn create_rustacean(mut db: Connection<DbConn>, new_rustacean: Json<NewRustacean>, _user: User) -> Result<Custom<Value>, Custom<Value>> {
+pub async fn create_rustacean(mut db: Connection<DbConn>, new_rustacean: Json<NewRustacean>, _editor_user: EditorUser) -> Result<Custom<Value>, Custom<Value>> {
         RustaceanRepository::create(&mut db, new_rustacean.into_inner()).await
         .map(|rustacean| Custom(Status::Created, json!(rustacean)))
         .map_err(|e| server_error(e.into()))
 }
 
 #[rocket::put("/rustaceans/<id>", format="json", data="<rustacean>")]
-pub async fn update_rustacean(mut db: Connection<DbConn>, id: i32, rustacean: Json<Rustacean>, _user: User) -> Result<Value, Custom<Value>> {
+pub async fn update_rustacean(mut db: Connection<DbConn>, id: i32, rustacean: Json<Rustacean>, _editor_user: EditorUser) -> Result<Value, Custom<Value>> {
         RustaceanRepository::update(&mut db, id, rustacean.into_inner()).await
         .map(|rustacean| json!(rustacean))
         .map_err(|e| server_error(e.into()))
 }
 
 #[rocket::delete("/rustaceans/<id>")]
-pub async fn delete_rustacean(mut db: Connection<DbConn>, id: i32, _user: User) -> Result<NoContent, Custom<Value>>{
+pub async fn delete_rustacean(mut db: Connection<DbConn>, id: i32, _editor_user: EditorUser) -> Result<NoContent, Custom<Value>>{
         RustaceanRepository::delete(&mut db, id).await
         .map(|_| NoContent)
         .map_err(|e| server_error(e.into()))

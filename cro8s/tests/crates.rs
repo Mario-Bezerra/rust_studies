@@ -99,11 +99,11 @@ fn test_update_crate() {
     // Test
     let response = client.put(format!("{}/crates/{}", common::APP_HOST, a_crate["id"]))
         .json(&json!({
-            "rustacean_id": rustacean["id"],
             "code": "fooz",
             "name": "Fooz crate",
             "version": "0.2",
             "description": "Fooz crate description",
+            "rustacean_id": rustacean["id"],
         }))
         .send()
         .unwrap();
@@ -120,27 +120,15 @@ fn test_update_crate() {
         "created_at": a_crate["created_at"],
     }));
 
-    // Cleanup
-    common::delete_test_crate(&client, a_crate);
-    common::delete_test_rustacean(&client, rustacean);
-}
-
-#[test]
-fn test_update_crate_and_change_rustacean() {
-    // Setup
-    let client = common::get_client_with_logged_in_admin();
-    let rustacean = common::create_test_rustacean(&client);
-    let rustacean_two = common::create_test_rustacean(&client);
-    let a_crate = common::create_test_crate(&client, &rustacean);
-
-    // Test
+    // Test author-switching for a crate and a very long description.
+    let rustacean2 = common::create_test_rustacean(&client);
     let response = client.put(format!("{}/crates/{}", common::APP_HOST, a_crate["id"]))
         .json(&json!({
-            "rustacean_id": rustacean_two["id"],
             "code": "fooz",
             "name": "Fooz crate",
             "version": "0.2",
-            "description": "Fooz crate description"
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque gravida aliquet arcu, non maximus urna iaculis et. Nam eu ante eu dolor volutpat maximus. Sed tincidunt pretium elementum. Quisque rutrum ex id sem luctus rhoncus ac ultrices lacus. Ut vulputate magna facilisis dignissim porttitor. Nulla vitae pretium neque. Vestibulum rutrum semper justo, ut mattis diam. Curabitur a tempus felis. Pellentesque sit amet pharetra nunc. Curabitur est nunc, tincidunt sit amet arcu sed, bibendum accumsan ligula. Maecenas eu dolor sed mi viverra congue. Phasellus vel dignissim lacus, vel tempor velit. Vestibulum vulputate sapien nisi, ac ullamcorper enim sodales vitae. Aliquam erat volutpat. Etiam tincidunt aliquet velit ac vulputate. Aenean et augue dolor.",
+            "rustacean_id": rustacean2["id"],
         }))
         .send()
         .unwrap();
@@ -152,9 +140,9 @@ fn test_update_crate_and_change_rustacean() {
         "code": "fooz",
         "name": "Fooz crate",
         "version": "0.2",
-        "description": "Fooz crate description",
-        "rustacean_id": rustacean_two["id"],
-        "created_at": a_crate["created_at"]
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque gravida aliquet arcu, non maximus urna iaculis et. Nam eu ante eu dolor volutpat maximus. Sed tincidunt pretium elementum. Quisque rutrum ex id sem luctus rhoncus ac ultrices lacus. Ut vulputate magna facilisis dignissim porttitor. Nulla vitae pretium neque. Vestibulum rutrum semper justo, ut mattis diam. Curabitur a tempus felis. Pellentesque sit amet pharetra nunc. Curabitur est nunc, tincidunt sit amet arcu sed, bibendum accumsan ligula. Maecenas eu dolor sed mi viverra congue. Phasellus vel dignissim lacus, vel tempor velit. Vestibulum vulputate sapien nisi, ac ullamcorper enim sodales vitae. Aliquam erat volutpat. Etiam tincidunt aliquet velit ac vulputate. Aenean et augue dolor.",
+        "rustacean_id": rustacean2["id"],
+        "created_at": a_crate["created_at"],
     }));
 
     // Cleanup

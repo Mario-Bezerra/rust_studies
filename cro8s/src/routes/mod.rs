@@ -22,8 +22,8 @@ pub fn server_error(error: Box<dyn Error>) -> Custom<rocket::serde::json::Value>
 
 use rocket::request::{self, Request, FromRequest};
 use rocket_db_pools::deadpool_redis::redis::AsyncCommands;
-use crate::models::User;
-use crate::repositories::UserRepository;
+use crate::models::{User, RoleCode};
+use crate::repositories::{UserRepository, RoleRepository};
 use rocket_db_pools::Connection;
 
 #[rocket::async_trait]
@@ -52,6 +52,37 @@ impl<'r> FromRequest<'r> for User {
                 }
             }
         }
+        Outcome::Error((Status::Unauthorized, ()))
+    }
+}
+
+pub struct EditorUser(User);
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for EditorUser {
+    type Error = ();
+
+    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        let user = req.guard::<User>().await
+            .expect("Cannot retrieve current logged in user");
+        let mut db = req.guard::<Connection<DbConn>>().await
+            .expect("Can not connect to Postgres in request guard");
+
+        if let Ok(roles) = RoleRepository::find_by_user(&mut db, &user).await {
+            rocket::info!("Roles assigned are {:?}", roles);
+            let is_editor = roles.iter().any(|r| match r.code {
+                RoleCode::Admin => true,
+                RoleCode::Editor => true,
+                _ => false
+            });
+            rocket::info!("Is editor is {:?}", is_editor);
+
+            if is_editor {
+                return Outcome::Success(EditorUser(user));
+            }
+        }
+
+
         Outcome::Error((Status::Unauthorized, ()))
     }
 }

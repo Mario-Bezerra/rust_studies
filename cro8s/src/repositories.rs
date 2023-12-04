@@ -93,7 +93,7 @@ impl UserRepository {
         Ok(users.into_iter().zip(result).collect())
     }
 
-    pub async fn create(c: &mut AsyncPgConnection, new_user: NewUser, role_codes: Vec<String>) -> QueryResult<User> {
+    pub async fn create(c: &mut AsyncPgConnection, new_user: NewUser, role_codes: Vec<RoleCode>) -> QueryResult<User> {
         let user = diesel::insert_into(users::table)
             .values(new_user)
             .get_result::<User>(c)
@@ -136,7 +136,7 @@ impl RoleRepository {
         roles::table.filter(roles::id.eq_any(ids)).load(c).await
     }
 
-    pub async fn find_by_code(c: &mut AsyncPgConnection, code: &String) -> QueryResult<Role> {
+    pub async fn find_by_code(c: &mut AsyncPgConnection, code: &RoleCode) -> QueryResult<Role> {
         roles::table.filter(roles::code.eq(code)).first(c).await
     }
 
