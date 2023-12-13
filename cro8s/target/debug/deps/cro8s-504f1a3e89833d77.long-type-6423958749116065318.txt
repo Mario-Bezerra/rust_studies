@@ -1,1 +1,0 @@
-DeleteStatement<schema::rustaceans::table, query_builder::where_clause::WhereClause<diesel::expression::grouped::Grouped<diesel::expression::operators::Eq<schema::rustaceans::columns::id, diesel::expression::bound::Bound<Integer, i32>>>>>
